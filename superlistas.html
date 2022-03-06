@@ -1,0 +1,119 @@
+<script>
+    const checkingPostPaginated = document.querySelector('#pp');
+
+    if (!!checkingPostPaginated) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const breaks = document.querySelectorAll('.q-page');
+        breaks.forEach((element) => {
+            element.insertAdjacentHTML('beforebegin', '<br data="qpage" />');
+        });
+        const postContent = document.querySelector(
+            '[data-elementor-type="wp-post"] div.elementor-section-wrap'
+        );
+
+        const myPages = postContent.innerHTML.split('<br data="qpage">');
+        let myPage = getPageOnSessionStorage();
+        const pageToShow = myPages[myPage - 1];
+
+        postContent.innerHTML = pageToShow;
+
+        let prevLink = '#';
+        let nextLink = '#';
+
+        if (myPage > 1) {
+            prevLink = location.href.split('?')[0] + `?page=${myPage - 1}`;
+        }
+        if (myPage < myPages.length) {
+            nextLink = location.href.split('?')[0] + `?page=${myPage + 1}`;
+        }
+
+        const btnsElements = `
+        <section id="pp-pagination-btns">
+            <div class="btn-navigation-content prev-content">
+                <button data-page="${
+                    myPage - 1
+                }" class="btn-navigation">Anterior</button>
+            </div>
+            <div class="btn-navigation-content next-content">
+                <button data-page="${
+                    myPage + 1
+                }" class="btn-navigation">Próximo</button>
+            </div>
+        </section>
+        `;
+        const pageContent = `
+        <section id="page-desc"><span>Você está na página ${myPage} de ${myPages.length}</span></section>
+        `;
+        postContent.insertAdjacentHTML('beforeend', btnsElements);
+        postContent.insertAdjacentHTML('afterbegin', pageContent);
+        defineDisplayOfButtons(myPage, myPages.length);
+        eventToPageButtons();
+    }
+
+    // Auxiliar functions
+    function setPageOnSessionStorage(pageToShow) {
+        window.sessionStorage.setItem(
+            `_${location.pathname}_pagination-data`,
+            JSON.stringify({
+                page: pageToShow,
+                time: new Date().getTime(),
+            })
+        );
+    }
+    function getPageOnSessionStorage() {
+        const item = window.sessionStorage.getItem(
+            `_${location.pathname}_pagination-data`
+        );
+
+        if (!!item) {
+            // check time
+            const json = JSON.parse(item);
+            if (new Date().getTime() - +json.time <= 3600000) {
+                return +json.page;
+            } else {
+                return 1;
+            }
+        } else {
+            return 1;
+        }
+    }
+
+    function defineDisplayOfButtons(atualPage, maxPages) {
+        const prev = document.querySelector(
+            '.btn-navigation-content.prev-content button'
+        );
+        const next = document.querySelector(
+            '.btn-navigation-content.next-content button'
+        );
+
+        console.log('atualPage => ', atualPage);
+        console.log('maxPages => ', maxPages);
+
+        if (atualPage < 2) {
+            prev.classList.add('hide');
+        } else {
+            prev.classList.remove('hide');
+        }
+
+        if (atualPage >= maxPages) {
+            next.classList.add('hide');
+        } else {
+            next.classList.remove('hide');
+        }
+    }
+
+    function eventToPageButtons() {
+        const btns = document.querySelectorAll(
+            '.btn-navigation-content button'
+        );
+        btns.forEach((element) => {
+            element.getAttribute;
+            element.onclick = function (e) {
+                const toPage = e.target.getAttribute('data-page');
+
+                setPageOnSessionStorage(toPage);
+                location.reload();
+            };
+        });
+    }
+</script>
